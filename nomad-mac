@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+compose=(docker compose --env-file "${repo_dir}/.env" -f "${repo_dir}/compose.macos.yml")
+
+if [[ ! -f "${repo_dir}/.env" ]]; then
+  echo "Missing ${repo_dir}/.env. Copy macos.env.example and replace the placeholders." >&2
+  exit 1
+fi
+
+case "${1:-status}" in
+  build)
+    upstream_version="$(sed -nE 's/^[[:space:]]*"version":[[:space:]]*"([^"]+)".*/\1/p' "${repo_dir}/package.json" | head -n 1)"
+    docker build --platform linux/arm64 \
+      -t project-nomad:local-arm64 \
+      --build-arg "VERSION=${upstream_version}-local-macos" \
+      "${repo_dir}"
+    ;;
+  start)
+    if ! docker image inspect project-nomad:local-arm64 >/dev/null 2>&1; then
+      "$0" build
+    fi
+    "${compose[@]}" up -d
+    ;;
+  rebuild)
+    "$0" build
+    "${compose[@]}" up -d --force-recreate
+    ;;
+  stop)
+    "${compose[@]}" stop
+    ;;
+  down)
+    "${compose[@]}" down
+    ;;
+  status)
+    "${compose[@]}" ps
+    ;;
+  logs)
+    "${compose[@]}" logs --tail=200 -f "${2:-admin}"
+    ;;
+  *)
+    echo "Usage: $0 {build|start|rebuild|stop|down|status|logs [service]}" >&2
+    exit 2
+    ;;
+esac

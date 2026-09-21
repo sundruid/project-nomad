@@ -16,6 +16,7 @@ import { BROADCAST_CHANNELS } from '../../constants/broadcast.js'
 import env from '#start/env'
 import { NOMAD_API_DEFAULT_BASE_URL } from '../../constants/misc.js'
 import KVStore from '#models/kv_store'
+import { getRemoteAiApiKey } from '../utils/remote_ai_auth.js'
 
 const NOMAD_MODELS_API_PATH = '/api/v1/ollama/models'
 const MODELS_CACHE_FILE = path.join(process.cwd(), 'storage', 'ollama-models-cache.json')
@@ -84,7 +85,9 @@ export class OllamaService {
         }
 
         this.openai = new OpenAI({
-          apiKey: 'nomad', // Required by SDK; not validated by Ollama/LM Studio/llama.cpp
+          // The SDK requires a value. Ollama/LM Studio/llama.cpp ignore the fallback,
+          // while authenticated OpenAI-compatible servers receive the configured key.
+          apiKey: getRemoteAiApiKey() || 'nomad',
           baseURL: `${this.baseUrl}/v1`,
         })
       })()

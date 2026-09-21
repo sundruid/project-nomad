@@ -13,6 +13,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { RAG_CONTEXT_LIMITS, SYSTEM_PROMPTS } from '../../constants/ollama.js'
 import { SERVICE_NAMES } from '../../constants/service_names.js'
 import logger from '@adonisjs/core/services/logger'
+import { getRemoteAiAuthHeaders } from '../utils/remote_ai_auth.js'
 type Message = { role: 'system' | 'user' | 'assistant'; content: string }
 
 @inject()
@@ -260,6 +261,7 @@ export default class OllamaController {
     }
     try {
       const testResponse = await fetch(`${remoteUrl.replace(/\/$/, '')}/v1/models`, {
+        headers: getRemoteAiAuthHeaders(),
         signal: AbortSignal.timeout(3000),
       })
       return { configured: true, connected: testResponse.ok }
@@ -305,6 +307,7 @@ export default class OllamaController {
     // Test connectivity via OpenAI-compatible /v1/models endpoint (works with Ollama, LM Studio, llama.cpp, etc.)
     try {
       const testResponse = await fetch(`${remoteUrl.replace(/\/$/, '')}/v1/models`, {
+        headers: getRemoteAiAuthHeaders(),
         signal: AbortSignal.timeout(5000),
       })
       if (!testResponse.ok) {
@@ -504,4 +507,3 @@ export default class OllamaController {
     }
   }
 }
-

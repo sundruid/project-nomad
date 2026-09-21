@@ -65,6 +65,15 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |----------------------------------------------------------
+  | Optional authentication for a remote AI server
+  |----------------------------------------------------------
+  | Used for OpenAI-compatible endpoints such as Unsloth Studio.
+  | The value remains server-side and is never persisted in the database.
+  */
+  REMOTE_AI_API_KEY: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
   | Creator Packs (gated content downloads)
   |----------------------------------------------------------
   | CREATOR_PACKS_APP_KEY is the shared bearer key the entitlement Worker

@@ -12,6 +12,17 @@
 
 ---
 
+> ## Apple Silicon: MacOS Unleashed
+>
+> The `MacOS-Unleashed` branch is a community-maintained Apple Silicon adaptation of Project
+> NOMAD. It builds the Command Center natively for ARM64, runs the core services in Docker Desktop,
+> supports authenticated OpenAI-compatible AI servers such as Unsloth Studio, and includes improved
+> navigation for downloaded offline maps.
+>
+> Start with the complete [MacOS Unleashed installation and operations guide](MACOS-LOCAL.md).
+
+---
+
 Project NOMAD is a self-contained, offline-first knowledge and education server packed with critical tools, knowledge, and AI to keep you informed and empowered — anytime, anywhere.
 
 ## Installation & Quickstart

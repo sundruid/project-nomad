@@ -1,0 +1,73 @@
+name: project-nomad
+
+services:
+  admin:
+    image: project-nomad:local-arm64
+    pull_policy: never
+    container_name: nomad_admin
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${NOMAD_PORT:-8080}:8080"
+    volumes:
+      - "${NOMAD_DATA_DIR}/storage:/app/storage"
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      NODE_ENV: production
+      NOMAD_STORAGE_PATH: "${NOMAD_DATA_DIR}/storage"
+      PORT: "8080"
+      LOG_LEVEL: info
+      APP_KEY: "${NOMAD_APP_KEY}"
+      HOST: 0.0.0.0
+      URL: "http://localhost:${NOMAD_PORT:-8080}"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_DATABASE: nomad
+      DB_USER: nomad_user
+      DB_PASSWORD: "${NOMAD_DB_PASSWORD}"
+      DB_SSL: "false"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      DISABLE_COMPRESSION: "false"
+      REMOTE_AI_API_KEY: "${NOMAD_REMOTE_AI_API_KEY:-}"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 60s
+
+  mysql:
+    image: mysql:8.0
+    container_name: nomad_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${NOMAD_MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: nomad
+      MYSQL_USER: nomad_user
+      MYSQL_PASSWORD: "${NOMAD_DB_PASSWORD}"
+    volumes:
+      - "${NOMAD_DATA_DIR}/mysql:/var/lib/mysql"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${NOMAD_MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: nomad_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - "${NOMAD_DATA_DIR}/redis:/data"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
